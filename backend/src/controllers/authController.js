@@ -96,4 +96,85 @@ const signup = async (req, res) => {
   }
 };
 
-module.exports = { signup };
+// Login function
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // 1. Validate input
+    if (!email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Email and password are required' 
+      });
+    }
+
+    // 2. Check if user exists
+    const userResult = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Invalid credentials' 
+      });
+    }
+
+    const user = userResult.rows[0];
+
+    // 3. Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Invalid credentials' 
+      });
+    }
+
+    // 4. Get gym information
+    const gymResult = await pool.query(
+      'SELECT * FROM gyms WHERE id = $1',
+      [user.gym_id]
+    );
+
+    const gym = gymResult.rows[0];
+
+    // 5. Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role, 
+        gymId: user.gym_id 
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // 6. Return success response
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        gymId: user.gym_id,
+        gymName: gym ? gym.name : null
+      }
+    });
+
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error during login' 
+    });
+  }
+};
+
+module.exports = { signup , login };
