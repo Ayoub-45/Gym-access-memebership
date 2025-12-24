@@ -25,6 +25,5 @@ build/
 .next/
 
 # Database
-*.sql
 *.db
 
