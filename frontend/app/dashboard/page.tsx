@@ -50,7 +50,7 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{user.gymName}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{user?.gymName}</h1>
               <p className="text-sm text-gray-500">Gym Management Dashboard</p>
             </div>
           </div>
