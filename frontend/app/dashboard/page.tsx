@@ -12,7 +12,6 @@ export default function DashboardPage() {
     // Check if user is logged in
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-
     if (!token || !userData) {
       // Not logged in, redirect to login
       router.push('/login');
@@ -21,6 +20,7 @@ export default function DashboardPage() {
 
     // User is logged in
     setUser(JSON.parse(userData));
+    console.log(userData)
     setLoading(false);
   }, [router]);
 
@@ -50,7 +50,7 @@ export default function DashboardPage() {
               </svg>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{user?.gymName}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{user.gymName}</h1>
               <p className="text-sm text-gray-500">Gym Management Dashboard</p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function DashboardPage() {
             </div>
             <div className="ml-4">
               <h2 className="text-xl font-semibold text-gray-900">
-                Welcome back, {user?.email}!
+                Welcome back, {user?.gymName}!
               </h2>
               <p className="text-gray-600">
                 You're logged in as <span className="font-medium text-indigo-600">{user?.role}</span>
