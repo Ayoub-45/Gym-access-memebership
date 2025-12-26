@@ -5,7 +5,7 @@ const pool = require('../config/database');
 // Signup function
 const signup = async (req, res) => {
   try {
-    const { email, password, gymName } = req.body;
+    const { email, password, gymName, role } = req.body;
 
     // 1. Validate input
     if (!email || !password || !gymName) {
@@ -28,6 +28,8 @@ const signup = async (req, res) => {
       });
     }
 
+    const userRole = role === 'staff' ? 'staff' : 'admin';
+
     // 3. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -47,7 +49,7 @@ const signup = async (req, res) => {
       // Create user linked to gym
       const userResult = await client.query(
         'INSERT INTO users (email, password, role, gym_id) VALUES ($1, $2, $3, $4) RETURNING id, email, role, gym_id, created_at',
-        [email, hashedPassword, 'admin', gym.id]
+        [email, hashedPassword, userRole, gym.id]
       );
       const user = userResult.rows[0];
 

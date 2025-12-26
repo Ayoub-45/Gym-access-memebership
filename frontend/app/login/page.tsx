@@ -33,9 +33,13 @@ export default function LoginPage() {
         // Store token in localStorage
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
-        // Redirect to dashboard
-        router.push('/dashboard');
+
+        // Role-based redirect
+        if (data.user.role === 'staff') {
+          router.push('/verify');
+        } else {
+          router.push('/dashboard');
+        }
       } else {
         setError(data.error || 'Login failed');
       }
