@@ -64,3 +64,31 @@ npm run dev
 ## Default Credentials
 
 After setup, you can create a new account at http://localhost:3001/signup
+
+---
+
+## 🧪 Testing & Coverage
+
+This project includes automated tests for both the **backend** and **frontend**.
+
+---
+
+### 🔧 Backend Tests (Jest)
+
+The backend uses **Jest** for unit and integration testing with a dedicated test database.
+
+#### Run backend tests with coverage
+```bash
+cd backend
+npm test -- --coverage
+
+### 🖥 Frontend Tests (Cypress – E2E)
+
+The frontend uses **Cypress** for End-to-End (E2E)
+
+#### Run backend tests with coverage
+```bash
+cd frontend
+npx cypress open
+
+npx cypress run

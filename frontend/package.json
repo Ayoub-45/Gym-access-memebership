@@ -14,10 +14,13 @@
     "react-dom": "19.2.3"
   },
   "devDependencies": {
+    "@cypress/code-coverage": "^3.14.7",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "babel-plugin-istanbul": "^7.0.1",
+    "cypress": "^15.8.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "tailwindcss": "^4",
