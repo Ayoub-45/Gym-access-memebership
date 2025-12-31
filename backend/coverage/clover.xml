@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1767183807755" clover="3.2.0">
-  <project timestamp="1767183807755" name="All files">
+<coverage generated="1767203272945" clover="3.2.0">
+  <project timestamp="1767203272945" name="All files">
     <metrics statements="66" coveredstatements="57" conditionals="17" coveredconditionals="16" methods="4" coveredmethods="4" elements="87" coveredelements="77" complexity="0" loc="66" ncloc="66" packages="3" files="3" classes="3"/>
     <package name="controllers">
       <metrics statements="47" coveredstatements="41" conditionals="17" coveredconditionals="16" methods="2" coveredmethods="2"/>
-      <file name="authController.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/controllers/authController.js">
+      <file name="authController.js" path="/home/ayoub/SaaS_products/Gym-access-memebership/backend/src/controllers/authController.js">
         <metrics statements="47" coveredstatements="41" conditionals="17" coveredconditionals="16" methods="2" coveredmethods="2"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -57,7 +57,7 @@
     </package>
     <package name="routes">
       <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
-      <file name="authRoutes.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/routes/authRoutes.js">
+      <file name="authRoutes.js" path="/home/ayoub/SaaS_products/Gym-access-memebership/backend/src/routes/authRoutes.js">
         <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -69,7 +69,7 @@
     </package>
     <package name="test-utils">
       <metrics statements="13" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-      <file name="testSetup.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/test-utils/testSetup.js">
+      <file name="testSetup.js" path="/home/ayoub/SaaS_products/Gym-access-memebership/backend/src/test-utils/testSetup.js">
         <metrics statements="13" coveredstatements="10" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
