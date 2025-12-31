@@ -1,0 +1,56 @@
+name: CI - Backend Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  backend-tests:
+    name: Run backend tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: gym_access_test
+          POSTGRES_USER: gym_admin
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U gym_admin -d gym_access_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: gym_access_test
+      DB_USER: gym_admin
+      DB_PASSWORD: test_password
+      NODE_ENV: test
+      JWT_SECRET: test_secret_key
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Run CI test setup and tests
+        run: |
+          chmod +x ./backend/ci-test.sh
+          ./backend/ci-test.sh
