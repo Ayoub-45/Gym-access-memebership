@@ -1,34 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    if (!token || !userData) {
-      // Not logged in, redirect to login
-      router.push('/login');
+    if (!userData) {
+      setLoading(false);
       return;
     }
-
-    // User is logged in
     setUser(JSON.parse(userData));
-    console.log(userData)
     setLoading(false);
-  }, [router]);
+  }, []);
+
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/login');
-  };
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login'; // simple redirect
+    };
+
+
 
   if (loading) {
     return (
