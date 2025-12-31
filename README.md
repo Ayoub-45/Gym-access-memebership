@@ -64,3 +64,26 @@ npm run dev
 ## Default Credentials
 
 After setup, you can create a new account at http://localhost:3001/signup
+
+---
+
+## 🧪 Running Tests
+
+### Prerequisites
+- PostgreSQL installed and running
+- sudo access for database operations
+
+### One-command test setup and execution:
+```bash
+cd backend
+chmod +x testsetup.sh
+./testsetup.sh
+```
+
+### Frontend Test:
+```bash
+cd Frontend
+chmod +x testsetup.sh
+./testsetup.sh
+```
+
