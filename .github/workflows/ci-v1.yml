@@ -46,15 +46,11 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: ${{ github.workspace }}/backend/package-lock.json
+          # Use a glob pattern or a relative path from the repo root
+          cache-dependency-path: backend/package-lock.json 
 
       - name: Install dependencies
-        run: npm install
-        working-directory: backend
-
-      - name: Run CI test setup and tests
-        run: |
-          chmod +x ci-testsetup.sh
-          ./ci-testsetup.sh
+        # This ensures npm looks for package.json inside the backend folder
+        run: npm ci 
         working-directory: backend
 
