@@ -3,10 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run --browser chrome",
+    "test": "cypress run --browser chrome",
+    "test:headed": "cypress run --headed --browser chrome"
   },
   "dependencies": {
     "next": "16.1.1",

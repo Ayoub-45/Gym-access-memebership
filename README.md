@@ -67,28 +67,23 @@ After setup, you can create a new account at http://localhost:3001/signup
 
 ---
 
-## 🧪 Testing & Coverage
+## 🧪 Running Tests
 
-This project includes automated tests for both the **backend** and **frontend**.
+### Prerequisites
+- PostgreSQL installed and running
+- sudo access for database operations
 
----
-
-### 🔧 Backend Tests (Jest)
-
-The backend uses **Jest** for unit and integration testing with a dedicated test database.
-
-#### Run backend tests with coverage
+### One-command test setup and execution:
 ```bash
 cd backend
-npm test -- --coverage
+chmod +x testsetup.sh
+./testsetup.sh
+```
 
-### 🖥 Frontend Tests (Cypress – E2E)
-
-The frontend uses **Cypress** for End-to-End (E2E)
-
-#### Run backend tests with coverage
+### Frontend Test:
 ```bash
-cd frontend
-npx cypress open
+cd Frontend
+chmod +x testsetup.sh
+./testsetup.sh
+```
 
-npx cypress run
