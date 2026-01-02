@@ -34,6 +34,21 @@ export default function LoginPage() {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
 
+        if (data.user.role === 'admin') {
+          const gymRes = await fetch('http://localhost:5000/api/gym/profile', {
+            headers: { 'Authorization': `Bearer ${data.token}` }
+          });
+          if (gymRes.ok) {
+            const gymData = await gymRes.json();
+            if (gymData.success) {
+              const user = JSON.parse(localStorage.getItem('user') || '{}');
+              user.gymName = gymData.gym.name;
+              user.gymLogo = gymData.gym.logo;
+              localStorage.setItem('user', JSON.stringify(user));
+            }
+          }
+        }
+
         // Role-based redirect
         if (data.user.role === 'staff') {
           router.push('/verify');
