@@ -7,6 +7,8 @@ export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({ total_members: 0, active_members: 0, today_checkins: 0 });  // ← ADD
+  const [statsLoading, setStatsLoading] = useState(true);  // ← ADD
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -17,6 +19,26 @@ export default function DashboardPage() {
     setUser(JSON.parse(userData));
     setLoading(false);
   }, []);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      if (!user?.gymId) return;
+      try {
+        setStatsLoading(true);
+        const token = localStorage.getItem('token');
+        const res = await fetch('http://localhost:5000/api/members/stats', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) setStats(data.stats);
+      } catch (error) {
+        console.error('Stats fetch error:', error);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchStats();
+  }, [user?.gymId]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -112,7 +134,11 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Members</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                {statsLoading ? (
+                  <div className="animate-pulse h-8 w-20 bg-gray-200 rounded"></div>
+                ) : (
+                  <p className="text-2xl font-bold text-gray-900">{stats.total_members}</p>
+                )}
               </div>
             </div>
           </div>
@@ -127,7 +153,11 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Active Members</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                {statsLoading ? (
+                  <div className="animate-pulse h-8 w-20 bg-gray-200 rounded"></div>
+                ) : (
+                  <p className="text-2xl font-bold text-gray-900">{stats.active_members}</p>
+                )}
               </div>
             </div>
           </div>
@@ -142,7 +172,11 @@ export default function DashboardPage() {
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Today's Check-ins</p>
-                <p className="text-2xl font-bold text-gray-900">0</p>
+                {statsLoading ? (
+                  <div className="animate-pulse h-8 w-20 bg-gray-200 rounded"></div>
+                ) : (
+                  <p className="text-2xl font-bold text-gray-900">{stats.today_checkins}</p>
+                )}
               </div>
             </div>
           </div>
@@ -152,17 +186,20 @@ export default function DashboardPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            
+
             {/* Add Member Button */}
-            <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
-              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+            <button
+              onClick={() => router.push('/dashboard/add-member')}
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all group"
+            >
+              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-indigo-200">
                 <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
               </div>
               <div>
-                <p className="font-medium text-gray-900">Add Member</p>
-                <p className="text-sm text-gray-500">Create a new gym member</p>
+                <p className="font-medium text-gray-900 group-hover:text-indigo-900">Add Member</p>
+                <p className="text-sm text-gray-500">Create new gym member</p>
               </div>
             </button>
 

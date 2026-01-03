@@ -50,6 +50,9 @@ const gymRoutes = require('./routes/gym');
 // ...
 app.use('/api/gym', gymRoutes);
 
+const memberRoutes = require('./routes/memberRoutes');
+app.use('/api/members', memberRoutes);
+
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
