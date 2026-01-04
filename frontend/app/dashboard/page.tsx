@@ -73,7 +73,6 @@ export default function DashboardPage() {
               Logout
             </button>
           </div>
-<<<<<<< HEAD
           <button
             data-cy="logout-btn"
             onClick={handleLogout}
@@ -81,8 +80,6 @@ export default function DashboardPage() {
           >
             Logout
           </button>
-=======
->>>>>>> user_story#4
         </div>
       </header>
 

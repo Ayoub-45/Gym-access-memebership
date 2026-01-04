@@ -47,7 +47,7 @@ jobs:
           node-version: 20
           cache: 'npm'
           # This tells the action to look for the lock file anywhere in the backend folder
-          cache-dependency-path: '/backend/package-lock.json'
+          cache-dependency-path: 'backend/package-lock.json'
 
       - name: Install dependencies
         # This ensures npm looks for package.json inside the backend folder
