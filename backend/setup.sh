@@ -18,6 +18,8 @@ cp "$SCHEMA_PATH" "$TMP_SCHEMA"
 chmod 644 "$TMP_SCHEMA"
 
 # Create database
+# Drop existing database if neededecho "⚠️ Dropping existing database (dev only)..."
+sudo -u postgres psql -c "DROP DATABASE IF EXISTS gym_access_membership;"
 sudo -u postgres psql -c "CREATE DATABASE gym_access_membership;" 2>/dev/null \
   || echo "ℹ️  Database already exists"
 
