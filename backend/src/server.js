@@ -11,6 +11,8 @@ const app = express();
 // Middleware
 app.use(cors()); // Allow frontend to connect
 app.use(express.json()); // Parse JSON request bodies
+app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static('src/uploads'));
 
 // Test route
 app.get('/', (req, res) => {
@@ -43,6 +45,10 @@ app.use('/api/auth', authRoutes);
 
 const verifyRoutes = require("./routes/verifyRoutes");
 app.use("/api/verify", verifyRoutes);
+
+const gymRoutes = require('./routes/gym');
+// ...
+app.use('/api/gym', gymRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;

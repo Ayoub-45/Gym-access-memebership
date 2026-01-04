@@ -29,9 +29,12 @@ SET default_table_access_method = heap;
 CREATE TABLE public.gyms (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     name character varying(255) NOT NULL,
+    logo text,
+    address text,
     owner_id uuid,
     subscription_status character varying(50) DEFAULT 'trial'::character varying,
-    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );
 
 
