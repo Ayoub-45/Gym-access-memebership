@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth, requireRole } = require('../middleware/auth');
-const { addMember } = require('../controllers/memberController');
+const { addMember, listMembers } = require('../controllers/memberController');
+const { updateMember } = require('../controllers/memberController');
+const { deactivateMember } = require('../controllers/memberController');
 const pool = require('../config/database');
 
 // POST /api/members - Add member (admin only)
@@ -43,5 +45,10 @@ router.get('/stats', requireAuth, requireRole('admin', 'staff'), async (req, res
   }
 });
 
+router.get('/', requireAuth, requireRole('admin', 'staff'), listMembers);
+
+router.patch('/:id', requireAuth, requireRole('admin'), updateMember);
+
+router.patch('/:id/deactivate', requireAuth, requireRole('admin'), deactivateMember);
 
 module.exports = router;

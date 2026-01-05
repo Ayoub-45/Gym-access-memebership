@@ -21,4 +21,78 @@ const addMember = async (req, res) => {
   }
 };
 
-module.exports = { addMember };
+const listMembers = async (req, res) => {
+  try {
+    const { gymId } = req.user;
+
+    const result = await pool.query(
+      `SELECT id, name, membership_start, membership_end, status
+       FROM public.members
+       WHERE gym_id = $1
+       ORDER BY id DESC`,
+      [gymId]
+    );
+
+    res.json({ success: true, members: result.rows });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const updateMember = async (req, res) => {
+  try {
+    const { gymId } = req.user;
+    const { id } = req.params;
+    const { name, membership_start, membership_end } = req.body;
+
+    // ensure the member belongs to this gym
+    const check = await pool.query(
+      `SELECT id FROM public.members WHERE id = $1 AND gym_id = $2`,
+      [id, gymId]
+    );
+
+    if (check.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Member not found' });
+    }
+
+    const result = await pool.query(
+      `UPDATE public.members
+       SET name = COALESCE($1, name),
+           membership_start = COALESCE($2, membership_start),
+           membership_end = COALESCE($3, membership_end)
+       WHERE id = $4
+       RETURNING id, name, membership_start, membership_end, status`,
+      [name?.trim() || null, membership_start || null, membership_end || null, id]
+    );
+
+    res.json({ success: true, member: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+const deactivateMember = async (req, res) => {
+  try {
+    const { gymId } = req.user;
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `UPDATE public.members
+       SET status = 'INACTIVE'
+       WHERE id = $1 AND gym_id = $2
+       RETURNING id, name, status`,
+      [id, gymId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Member not found' });
+    }
+
+    res.json({ success: true, member: result.rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+
+module.exports = { addMember, listMembers, updateMember, deactivateMember };
