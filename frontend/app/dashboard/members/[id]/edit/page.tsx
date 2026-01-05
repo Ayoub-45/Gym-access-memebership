@@ -35,8 +35,8 @@ export default function EditMemberPage() {
 
         setForm({
           name: m.name || '',
-          membership_start: (m.membership_start || '').slice(0, 10),
-          membership_end: (m.membership_end || '').slice(0, 10),
+          membership_start: m.membership_start || '',
+          membership_end: m.membership_end || '',
         });
       } catch (e: any) {
         setError(e.message);

@@ -26,10 +26,20 @@ const listMembers = async (req, res) => {
     const { gymId } = req.user;
 
     const result = await pool.query(
-      `SELECT id, name, membership_start, membership_end, status
-       FROM public.members
-       WHERE gym_id = $1
-       ORDER BY id DESC`,
+      `SELECT
+          id,
+          name,
+          to_char(membership_start, 'YYYY-MM-DD') AS membership_start,
+          to_char(membership_end, 'YYYY-MM-DD') AS membership_end,
+          status,
+          CASE 
+            WHEN status = 'ACTIVE' AND CURRENT_DATE < membership_end::date 
+            THEN 'ACTIVE' 
+            ELSE 'INACTIVE' 
+          END as effective_status
+      FROM public.members
+      WHERE gym_id = $1
+      ORDER BY id DESC`,
       [gymId]
     );
 
@@ -38,6 +48,7 @@ const listMembers = async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
 
 const updateMember = async (req, res) => {
   try {

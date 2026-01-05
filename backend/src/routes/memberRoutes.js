@@ -9,27 +9,28 @@ const pool = require('../config/database');
 // POST /api/members - Add member (admin only)
 router.post('/', requireAuth, requireRole('admin'), addMember);
 
-// GET /api/members/stats - Get dashboard stats ← ADD THIS BLOCK HERE
+// GET /api/members/stats - Get dashboard stats
 router.get('/stats', requireAuth, requireRole('admin', 'staff'), async (req, res) => {
   try {
     const { gymId } = req.user;
-    console.log('Stats request for gymId:', gymId);  // ← DEBUG LOG
+    console.log('Stats request for gymId:', gymId);
 
     const totalResult = await pool.query(
       'SELECT COUNT(*)::integer as total_members FROM public.members WHERE gym_id = $1', 
       [gymId]
     );
 
+    // FIXED: Now checks CURRENT_DATE < membership_end (28 Jan < 30 Jan = active)
     const activeResult = await pool.query(
       `SELECT COUNT(*)::integer as active_members 
        FROM public.members 
        WHERE gym_id = $1 
          AND status = 'ACTIVE' 
-         AND CURRENT_DATE BETWEEN membership_start::date AND membership_end::date`, 
+         AND CURRENT_DATE < membership_end::date`, 
       [gymId]
     );
 
-    console.log('DB Results:', totalResult.rows[0], activeResult.rows[0]);  // ← DEBUG LOG
+    console.log('DB Results:', totalResult.rows[0], activeResult.rows[0]);
 
     res.json({ 
       success: true, 
