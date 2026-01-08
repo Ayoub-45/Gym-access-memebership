@@ -90,6 +90,7 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={handleLogout}
+              data-cy="logout-btn"
               className="px-8 py-3 bg-white/20 backdrop-blur-sm text-white font-bold rounded-2xl shadow-2xl hover:bg-white/30 transition-all duration-300 border-2 border-white/30 hover:border-white/50"
             >
               Logout
