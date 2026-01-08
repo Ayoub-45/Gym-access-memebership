@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1767830188832" clover="3.2.0">
-  <project timestamp="1767830188832" name="All files">
+<coverage generated="1767834888043" clover="3.2.0">
+  <project timestamp="1767834888044" name="All files">
     <metrics statements="190" coveredstatements="165" conditionals="64" coveredconditionals="56" methods="15" coveredmethods="14" elements="269" coveredelements="235" complexity="0" loc="190" ncloc="190" packages="3" files="8" classes="8"/>
     <package name="controllers">
       <metrics statements="126" coveredstatements="105" conditionals="52" coveredconditionals="45" methods="9" coveredmethods="9"/>
-      <file name="authController.js" path="/home/mohamed-aziz/myprojects/Gym-access-memebership/backend/src/controllers/authController.js">
+      <file name="authController.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/controllers/authController.js">
         <metrics statements="48" coveredstatements="42" conditionals="19" coveredconditionals="17" methods="2" coveredmethods="2"/>
         <line num="1" count="3" type="stmt"/>
         <line num="2" count="3" type="stmt"/>
@@ -55,7 +55,7 @@
         <line num="175" count="0" type="stmt"/>
         <line num="182" count="3" type="stmt"/>
       </file>
-      <file name="gymController.js" path="/home/mohamed-aziz/myprojects/Gym-access-memebership/backend/src/controllers/gymController.js">
+      <file name="gymController.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/controllers/gymController.js">
         <metrics statements="40" coveredstatements="32" conditionals="18" coveredconditionals="16" methods="3" coveredmethods="3"/>
         <line num="1" count="1" type="stmt"/>
         <line num="4" count="1" type="stmt"/>
@@ -98,7 +98,7 @@
         <line num="118" count="0" type="stmt"/>
         <line num="125" count="1" type="stmt"/>
       </file>
-      <file name="memberController.js" path="/home/mohamed-aziz/myprojects/Gym-access-memebership/backend/src/controllers/memberController.js">
+      <file name="memberController.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/controllers/memberController.js">
         <metrics statements="38" coveredstatements="31" conditionals="15" coveredconditionals="12" methods="4" coveredmethods="4"/>
         <line num="1" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -142,7 +142,7 @@
     </package>
     <package name="middleware">
       <metrics statements="27" coveredstatements="25" conditionals="12" coveredconditionals="11" methods="5" coveredmethods="4"/>
-      <file name="auth.js" path="/home/mohamed-aziz/myprojects/Gym-access-memebership/backend/src/middleware/auth.js">
+      <file name="auth.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/middleware/auth.js">
         <metrics statements="17" coveredstatements="16" conditionals="10" coveredconditionals="9" methods="3" coveredmethods="3"/>
         <line num="1" count="3" type="stmt"/>
         <line num="4" count="27" type="stmt"/>
@@ -162,7 +162,7 @@
         <line num="28" count="21" type="stmt"/>
         <line num="32" count="3" type="stmt"/>
       </file>
-      <file name="upload.js" path="/home/mohamed-aziz/myprojects/Gym-access-memebership/backend/src/middleware/upload.js">
+      <file name="upload.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/middleware/upload.js">
         <metrics statements="10" coveredstatements="9" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="1"/>
         <line num="1" count="2" type="stmt"/>
         <line num="2" count="2" type="stmt"/>
@@ -178,7 +178,7 @@
     </package>
     <package name="routes">
       <metrics statements="37" coveredstatements="35" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
-      <file name="authRoutes.js" path="/home/mohamed-aziz/myprojects/Gym-access-memebership/backend/src/routes/authRoutes.js">
+      <file name="authRoutes.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/routes/authRoutes.js">
         <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="3" type="stmt"/>
         <line num="2" count="3" type="stmt"/>
@@ -187,7 +187,7 @@
         <line num="9" count="3" type="stmt"/>
         <line num="11" count="3" type="stmt"/>
       </file>
-      <file name="gym.js" path="/home/mohamed-aziz/myprojects/Gym-access-memebership/backend/src/routes/gym.js">
+      <file name="gym.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/routes/gym.js">
         <metrics statements="9" coveredstatements="9" conditionals="0" coveredconditionals="0" methods="0" coveredmethods="0"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
@@ -199,7 +199,7 @@
         <line num="18" count="1" type="stmt"/>
         <line num="20" count="1" type="stmt"/>
       </file>
-      <file name="memberRoutes.js" path="/home/mohamed-aziz/myprojects/Gym-access-memebership/backend/src/routes/memberRoutes.js">
+      <file name="memberRoutes.js" path="/home/mohamed-aziz/Desktop/Project/Gym-access-memebership/backend/src/routes/memberRoutes.js">
         <metrics statements="22" coveredstatements="20" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>

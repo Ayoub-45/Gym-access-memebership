@@ -29,6 +29,7 @@ CREATE TABLE public.members (
     membership_end date NOT NULL,
     status varchar(50) DEFAULT 'ACTIVE',
     gym_id uuid NOT NULL REFERENCES public.gyms(id) ON DELETE CASCADE,
+    qr_token UUID DEFAULT gen_random_uuid() NOT NULL UNIQUE,
     created_at timestamp DEFAULT CURRENT_TIMESTAMP
 );
 
