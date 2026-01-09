@@ -2,27 +2,42 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from "../../lib/api";
 
 export default function AddMember() {
-  const [form, setForm] = useState({ name: '', membership_start: '', membership_end: '' });
+  const [form, setForm] = useState({
+    name: '',
+    membership_start: '',
+    membership_end: '',
+    email: '',
+    password: '',
+  });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
 
     const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:5000/api/members', {
+
+    const payload = {
+      ...form,
+      email: form.email.trim() || null,
+      password: form.password.trim() || null,
+    };
+
+    const res = await fetch(apiUrl('/api/members'), {
       method: 'POST',
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(form)
+      body: JSON.stringify(payload),
     });
+
 
     const data = await res.json();
     setLoading(false);
@@ -82,6 +97,31 @@ export default function AddMember() {
                 placeholder="John Doe"
                 required
               />
+            </div>
+
+            {/* Optional login */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-3">📧 Email (optional)</label>
+                <input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full px-5 py-5 text-xl text-gray-900 font-semibold border-2 border-gray-200 rounded-2xl bg-white/80"
+                  placeholder="member@email.com"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-900 mb-3">🔑 Password (optional)</label>
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  className="w-full px-5 py-5 text-xl text-gray-900 font-semibold border-2 border-gray-200 rounded-2xl bg-white/80"
+                  placeholder="Temporary password"
+                />
+              </div>
             </div>
 
             {/* Dates - DARK TEXT */}

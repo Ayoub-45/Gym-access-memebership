@@ -9,7 +9,7 @@ const {
 } = require('../controllers/gymController');
 
 // GET /api/gym/profile - Get current gym profile (admin or staff)
-router.get('/profile', requireAuth, requireRole('admin', 'staff'), getGymProfile);
+router.get('/profile', requireAuth, requireRole('admin', 'staff','member'), getGymProfile);
 
 // GET /api/gym/check-name - Check if gym name is available (admin only)
 router.get('/check-name', requireAuth, requireRole('admin'), checkGymName);

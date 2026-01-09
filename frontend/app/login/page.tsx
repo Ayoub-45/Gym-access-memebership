@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from "../lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(apiUrl('/api/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -35,7 +36,7 @@ export default function LoginPage() {
         localStorage.setItem('user', JSON.stringify(data.user));
 
         if (data.user.role === 'admin') {
-          const gymRes = await fetch('http://localhost:5000/api/gym/profile', {
+          const gymRes = await fetch(apiUrl('/api/gym/profile'), {
             headers: { 'Authorization': `Bearer ${data.token}` }
           });
           if (gymRes.ok) {
@@ -50,10 +51,12 @@ export default function LoginPage() {
         }
 
         // Role-based redirect
-        if (data.user.role === 'staff') {
-          router.push('/verify');
+        if (data.user.role === 'member') {
+          router.replace('/member/dashboard');
+        } else if (data.user.role === 'staff') {
+          router.replace('/verify');
         } else {
-          router.push('/dashboard');
+          router.replace('/dashboard');
         }
       } else {
         setError(data.error || 'Login failed');

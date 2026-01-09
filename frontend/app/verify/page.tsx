@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BrowserQRCodeReader } from "@zxing/browser";
+import { apiUrl } from "../lib/api";
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -48,7 +49,7 @@ export default function VerifyPage() {
 
       const token = localStorage.getItem("token");
 
-      const res = await fetch("http://localhost:5000/api/qr/verify", {
+      const res = await fetch(apiUrl("/api/qr/verify"), {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

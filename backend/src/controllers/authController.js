@@ -28,7 +28,7 @@ const signup = async (req, res) => {
       });
     }
 
-    const userRole = role === 'staff' ? 'staff' : 'admin';
+    const userRole = 'admin';
 
     // 3. Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -103,80 +103,121 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Validate input
     if (!email || !password) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Email and password are required' 
-      });
+      return res.status(400).json({ success: false, error: 'Email and password are required' });
     }
 
-    // 2. Check if user exists
+    const cleanEmail = email.trim().toLowerCase();
+
+    // 1) Try USERS (admin/staff) first
     const userResult = await pool.query(
-      'SELECT * FROM users WHERE email = $1',
-      [email]
+      'SELECT * FROM public.users WHERE email = $1',
+      [cleanEmail]
     );
 
-    if (userResult.rows.length === 0) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Invalid credentials' 
+    if (userResult.rows.length > 0) {
+      const user = userResult.rows[0];
+
+      const ok = await bcrypt.compare(password, user.password);
+      if (!ok) return res.status(401).json({ success: false, error: 'Invalid credentials' });
+
+      const gymResult = await pool.query('SELECT * FROM public.gyms WHERE id = $1', [user.gym_id]);
+      const gym = gymResult.rows[0];
+
+      const token = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role, gymId: user.gym_id },
+        process.env.JWT_SECRET,
+        { expiresIn: '7d' }
+      );
+
+      return res.json({
+        success: true,
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          gymId: user.gym_id,
+          gymName: gym ? gym.name : null,
+        },
       });
     }
 
-    const user = userResult.rows[0];
-
-    // 3. Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ 
-        success: false, 
-        error: 'Invalid credentials' 
-      });
-    }
-
-    // 4. Get gym information
-    const gymResult = await pool.query(
-      'SELECT * FROM gyms WHERE id = $1',
-      [user.gym_id]
+    // 2) If not a user, try MEMBERS
+    const memberResult = await pool.query(
+      `SELECT id, name, email, password, gym_id, membership_start, membership_end, status
+       FROM public.members
+       WHERE email = $1`,
+      [cleanEmail]
     );
 
-    const gym = gymResult.rows[0];
+    if (memberResult.rows.length === 0) {
+      return res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
 
-    // 5. Generate JWT token
+    const member = memberResult.rows[0];
+
+    if (!member.password) {
+      return res.status(401).json({ success: false, error: 'This member has no login credentials' });
+    }
+
+    const ok = await bcrypt.compare(password, member.password);
+    if (!ok) return res.status(401).json({ success: false, error: 'Invalid credentials' });
+
     const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role, 
-        gymId: user.gym_id 
-      },
+      { memberId: member.id, email: member.email, role: 'member', gymId: member.gym_id },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    // 6. Return success response
-    res.json({
+    return res.json({
       success: true,
       message: 'Login successful',
       token,
       user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        gymId: user.gym_id,
-        gymName: gym ? gym.name : null
-      }
+        id: member.id,
+        email: member.email,
+        role: 'member',
+        gymId: member.gym_id,
+        name: member.name,
+        membership_start: member.membership_start,
+        membership_end: member.membership_end,
+        status: member.status,
+      },
     });
-
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Server error during login' 
-    });
+    return res.status(500).json({ success: false, error: 'Server error during login' });
   }
 };
 
-module.exports = { signup , login };
+const createStaff = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const gymId = req.user.gymId;
+
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: "Email and password are required" });
+    }
+
+    const userExists = await pool.query("SELECT id FROM users WHERE email = $1", [email]);
+    if (userExists.rows.length > 0) {
+      return res.status(400).json({ success: false, error: "Email already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const userResult = await pool.query(
+      "INSERT INTO users (email, password, role, gym_id) VALUES ($1, $2, $3, $4) RETURNING id, email, role, gym_id, created_at",
+      [email, hashedPassword, "staff", gymId]
+    );
+
+    res.status(201).json({ success: true, staff: userResult.rows[0] });
+  } catch (error) {
+    console.error("Create staff error:", error);
+    res.status(500).json({ success: false, error: "Server error during staff creation" });
+  }
+};
+
+module.exports = { signup , login , createStaff };

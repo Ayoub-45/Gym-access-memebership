@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl } from "../lib/api";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -9,7 +10,6 @@ export default function SignupPage() {
     email: '',
     password: '',
     gymName: '',
-    role: 'admin',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ export default function SignupPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signup', {
+      const response = await fetch(apiUrl('/api/auth/signup'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -34,7 +34,7 @@ export default function SignupPage() {
       if (data.success) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
+
         alert('Account created successfully!');
         router.push('/dashboard');
       } else {
@@ -177,58 +177,6 @@ export default function SignupPage() {
                   </button>
                 </div>
               </div>
-
-              {/* Role selector (DEV ONLY) */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Account role
-                </label>
-
-                <div className="space-y-3">
-                  {/* Gym Owner */}
-                  <label
-                    className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer ${
-                      formData.role === "admin"
-                        ? "border-indigo-600 bg-indigo-50"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value="admin"
-                      checked={formData.role === "admin"}
-                      onChange={handleChange}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900">Gym Owner</p>
-                    </div>
-                  </label>
-
-                  {/* Staff */}
-                  <label
-                    className={`flex items-start gap-3 p-4 border rounded-lg cursor-pointer ${
-                      formData.role === "staff"
-                        ? "border-green-600 bg-green-50"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value="staff"
-                      checked={formData.role === "staff"}
-                      onChange={handleChange}
-                      className="mt-1"
-                    />
-                    <div>
-                      <p className="font-medium text-gray-900">Staff Member</p>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
 
               {/* Submit Button */}
               <button

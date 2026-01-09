@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format, parseISO } from "date-fns";
+import { apiUrl } from "../../lib/api";
 
 const formatDT = (v?: string) => {
   if (!v) return "-";
@@ -28,7 +29,7 @@ export default function MembersPage() {
     try {
       setError('');
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:5000/api/members', {
+      const res = await fetch(apiUrl("/api/members"), {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -50,7 +51,7 @@ export default function MembersPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/members/${id}/deactivate`, {
+      const res = await fetch(apiUrl(`/api/members/${id}/deactivate`), {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` },
       });
