@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { QRCodeSVG } from 'qrcode.react';
+import { apiUrl } from "../../../lib/api";
 
 interface Member {
   id: string;
@@ -28,7 +28,7 @@ export default function MemberDetailPage() {
     const fetchMember = async () => {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/members', {
+        const res = await fetch(apiUrl('/api/members'), {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -58,7 +58,7 @@ export default function MemberDetailPage() {
     
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/api/qr/members/${memberId}`, {
+      const res = await fetch(apiUrl(`/api/qr/members/${memberId}`), {
         headers: { Authorization: `Bearer ${token}` },
       });
       

@@ -22,9 +22,13 @@ export default function DashboardLayout({
 
     const user = JSON.parse(userRaw);
 
-    // 2️⃣ Staff → forbidden → verify ONLY
     if (user.role === 'staff') {
       router.replace('/verify');
+      return;
+    }
+
+    if (user.role === 'member') {
+      router.replace('/member/dashboard');
       return;
     }
 

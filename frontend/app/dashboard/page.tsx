@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl, API_URL } from "../lib/api";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ total_members: 0, active_members: 0, today_checkins: 0 });  // ← ADD
+  const [stats, setStats] = useState({ totalmembers: 0, activemembers: 0, todaycheckins: 0 });
   const [statsLoading, setStatsLoading] = useState(true);  // ← ADD
 
   useEffect(() => {
@@ -26,11 +27,17 @@ export default function DashboardPage() {
       try {
         setStatsLoading(true);
         const token = localStorage.getItem('token');
-        const res = await fetch('http://localhost:5000/api/members/stats', {
-          headers: { Authorization: `Bearer ${token}` }
+        const res = await fetch(apiUrl("/api/members/stats"), {
+          headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
-        if (data.success) setStats(data.stats);
+        if (data.success) {
+          setStats({
+            totalmembers: data.stats.total_members ?? 0,
+            activemembers: data.stats.active_members ?? 0,
+            todaycheckins: data.stats.today_checkins ?? 0,
+          });
+        }
       } catch (error) {
         console.error('Stats fetch error:', error);
       } finally {
@@ -64,7 +71,7 @@ export default function DashboardPage() {
               <div className="w-20 h-20 rounded-2xl shadow-2xl overflow-hidden ring-4 ring-white/20 flex-shrink-0">
                 {user?.gymLogo ? (
                   <img
-                    src={`http://localhost:5000/uploads/${user.gymLogo.split('/').pop() || user.gymLogo.split('\\').pop()}`}
+                    src={`${API_URL}/uploads/${user.gymLogo.split('/').pop() || user.gymLogo.split('\\').pop()}`}
                     alt="Gym Logo"
                     className="w-full h-full object-contain p-3 bg-white"
                     onError={(e) => {
@@ -138,7 +145,7 @@ export default function DashboardPage() {
                 {statsLoading ? (
                   <div className="animate-pulse h-8 w-20 bg-gray-200 rounded"></div>
                 ) : (
-                  <p className="text-2xl font-bold text-gray-900">{stats.total_members}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.totalmembers}</p>
                 )}
               </div>
             </div>
@@ -157,7 +164,7 @@ export default function DashboardPage() {
                 {statsLoading ? (
                   <div className="animate-pulse h-8 w-20 bg-gray-200 rounded"></div>
                 ) : (
-                  <p className="text-2xl font-bold text-gray-900">{stats.active_members}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.activemembers}</p>
                 )}
               </div>
             </div>
@@ -176,7 +183,7 @@ export default function DashboardPage() {
                 {statsLoading ? (
                   <div className="animate-pulse h-8 w-20 bg-gray-200 rounded"></div>
                 ) : (
-                  <p className="text-2xl font-bold text-gray-900">{stats.today_checkins}</p>
+                  <p className="text-2xl font-bold text-gray-900">{stats.todaycheckins}</p>
                 )}
               </div>
             </div>
@@ -258,6 +265,35 @@ export default function DashboardPage() {
                 <p className="text-sm text-gray-500">Update gym profile</p>
               </div>
             </button>
+
+            {user?.role === 'admin' && (
+              <button
+                onClick={() => router.push('/dashboard/create-staff')}
+                className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-indigo-50 transition-all group text-left"
+              >
+                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-blue-200">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"
+                    />
+                    <circle cx="9" cy="7" r="4" strokeWidth={2} />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 8v6m3-3h-6"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900">Create Staff</p>
+                  <p className="text-sm text-gray-500">Add staff to your gym</p>
+                </div>
+              </button>
+            )}
 
           </div>
         </div>

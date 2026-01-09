@@ -182,7 +182,55 @@ const verifyQRAccess = async (req, res) => {
   }
 };
 
-module.exports = { 
-  generateMemberQR, 
-  verifyQRAccess 
+const generateMyQR = async (req, res) => {
+  try {
+    const { gymId, memberId } = req.user;
+
+    const memberResult = await pool.query(
+      `SELECT id, name, qr_token, membership_end, status, gym_id
+       FROM public.members
+       WHERE id = $1 AND gym_id = $2`,
+      [memberId, gymId]
+    );
+
+    if (memberResult.rows.length === 0) {
+      return res.status(404).json({ success: false, error: 'Member not found' });
+    }
+
+    const member = memberResult.rows[0];
+
+    if (member.status !== 'ACTIVE') {
+      return res.status(400).json({ success: false, error: 'Cannot generate QR for inactive member' });
+    }
+
+    const qrToken = jwt.sign(
+      {
+        memberId: member.id,
+        gymId: member.gym_id,
+        qrToken: member.qr_token,
+        type: 'gym_access',
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: '365d' }
+    );
+
+    const qrCodeDataURL = await QRCode.toDataURL(qrToken, {
+      errorCorrectionLevel: 'H',
+      type: 'image/png',
+      width: 300,
+      margin: 1,
+    });
+
+    res.json({
+      success: true,
+      qrCode: qrCodeDataURL,
+      member: { id: member.id, name: member.name, membershipEnd: member.membership_end },
+    });
+  } catch (error) {
+    console.error('Generate my QR error:', error);
+    res.status(500).json({ success: false, error: 'Server error generating QR code' });
+  }
 };
+
+
+module.exports = { generateMemberQR, verifyQRAccess , generateMyQR };

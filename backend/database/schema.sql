@@ -1,3 +1,5 @@
+-- Needed for gen_random_uuid()
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 DROP TABLE IF EXISTS public.members, public.users, public.gyms CASCADE;
@@ -25,13 +27,24 @@ CREATE TABLE public.users (
 CREATE TABLE public.members (
     id uuid DEFAULT gen_random_uuid() NOT NULL PRIMARY KEY,
     name varchar(255) NOT NULL,
+
+    -- optional member login
+    email varchar(255),
+    password varchar(255),
+
     membership_start date NOT NULL,
     membership_end date NOT NULL,
     status varchar(50) DEFAULT 'ACTIVE',
     gym_id uuid NOT NULL REFERENCES public.gyms(id) ON DELETE CASCADE,
-    qr_token UUID DEFAULT gen_random_uuid() NOT NULL UNIQUE,
+
+    qr_token uuid DEFAULT gen_random_uuid() NOT NULL UNIQUE,
     created_at timestamp DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Unique per gym (allows same email in different gyms)
+CREATE UNIQUE INDEX members_unique_email_per_gym
+ON public.members (gym_id, email)
+WHERE email IS NOT NULL;
 
 GRANT ALL ON SCHEMA public TO gym_admin;
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO gym_admin;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiUrl, API_URL } from "../../lib/api";
 
 interface GymProfile {
   id: number;
@@ -37,10 +38,8 @@ export default function GymProfilePage() {
           return;
         }
 
-        const response = await fetch('http://localhost:5000/api/gym/profile', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
+        const response = await fetch(apiUrl("/api/gym/profile"), {
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await response.json();
@@ -52,7 +51,7 @@ export default function GymProfilePage() {
             address: data.gym.address || '',
           });
           if (data.gym.logo) {
-            setLogoPreview(`http://localhost:5000/uploads/${data.gym.logo.split('/').pop()}`);
+            setLogoPreview(`${API_URL}/uploads/${data.gym.logo.split('/').pop()}`);
           }
         } else {
           setError(data.error || 'Failed to load gym profile');
@@ -85,11 +84,9 @@ export default function GymProfilePage() {
         submitData.append('logo', logoFile);
       }
 
-      const response = await fetch('http://localhost:5000/api/gym/profile', {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await fetch(apiUrl("/api/gym/profile"), {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
         body: submitData,
       });
 
@@ -98,7 +95,7 @@ export default function GymProfilePage() {
       if (data.success) {
         setGym(data.gym);
               if (data.gym.logo) {
-          setLogoPreview(`http://localhost:5000/uploads/${data.gym.logo.split('/').pop()}`);
+          setLogoPreview(`${API_URL}/uploads/${data.gym.logo.split('/').pop()}`);
         } else {
           setLogoPreview(null);
         }

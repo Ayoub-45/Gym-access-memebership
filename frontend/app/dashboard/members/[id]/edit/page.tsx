@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { apiUrl } from "../../../../lib/api";
 
 export default function EditMemberPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function EditMemberPage() {
         setError('');
         const token = localStorage.getItem('token');
 
-        const res = await fetch('http://localhost:5000/api/members', {
+        const res = await fetch(apiUrl('/api/members'), {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await res.json();
@@ -56,7 +57,7 @@ export default function EditMemberPage() {
     try {
       const token = localStorage.getItem('token');
 
-      const res = await fetch(`http://localhost:5000/api/members/${memberId}`, {
+      const res = await fetch(apiUrl(`/api/members/${memberId}`), {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
