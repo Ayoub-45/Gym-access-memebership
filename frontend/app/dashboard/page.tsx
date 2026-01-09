@@ -90,24 +90,18 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={handleLogout}
+              data-cy="logout-btn"
               className="px-8 py-3 bg-white/20 backdrop-blur-sm text-white font-bold rounded-2xl shadow-2xl hover:bg-white/30 transition-all duration-300 border-2 border-white/30 hover:border-white/50"
             >
               Logout
             </button>
           </div>
-          <button
-            data-cy="logout-btn"
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            Logout
-          </button>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         {/* Welcome Card */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <div className="flex items-center">
@@ -211,7 +205,10 @@ export default function DashboardPage() {
             </button>
 
             {/* Scan QR Code Button */}
-            <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left">
+            <button
+              onClick={() => router.push('/verify')}  // ← Change from /dashboard/scan-qr to /verify
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
+            >
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -220,6 +217,28 @@ export default function DashboardPage() {
               <div>
                 <p className="font-medium text-gray-900">Scan QR Code</p>
                 <p className="text-sm text-gray-500">Verify member access</p>
+              </div>
+            </button>
+
+
+            {/* Manage Members Button */}
+            <button
+              onClick={() => router.push('/dashboard/members')}
+              className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-indigo-50 hover:border-indigo-200 transition-all group text-left"
+            >
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-orange-200">
+                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="font-medium text-gray-900 group-hover:text-indigo-900">Manage Members</p>
+                <p className="text-sm text-gray-500">Edit or deactivate members</p>
               </div>
             </button>
 

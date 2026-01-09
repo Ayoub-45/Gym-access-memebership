@@ -53,6 +53,9 @@ app.use('/api/gym', gymRoutes);
 const memberRoutes = require('./routes/memberRoutes');
 app.use('/api/members', memberRoutes);
 
+const qrRoutes = require('./routes/qrRoutes');
+app.use('/api/qr', qrRoutes);
+
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
