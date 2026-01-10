@@ -16,36 +16,36 @@ export default function AddMember() {
   const [message, setMessage] = useState('');
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage('');
 
-    const token = localStorage.getItem('token');
+    // Validate required fields
+    if (!form.email.trim() || !form.password.trim()) {
+      setMessage('❌ Email and password are required');
+      setLoading(false);
+      return;
+    }
 
-    const payload = {
-      ...form,
-      email: form.email.trim() || null,
-      password: form.password.trim() || null,
-    };
+    const token = localStorage.getItem('token');
 
     const res = await fetch(apiUrl('/api/members'), {
       method: 'POST',
-      headers: { 
+      headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(form), // Send all fields as-is
     });
-
 
     const data = await res.json();
     setLoading(false);
 
     if (data.success) {
-      setMessage('✅ Member added successfully!');
+      setMessage('✅ Member added successfully! They can now login with their credentials.');
       router.refresh();
-      setTimeout(() => router.push('/dashboard'), 2000);
+      setTimeout(() => router.push('/dashboard'), 2500);
     } else {
       setMessage(`❌ ${data.error}`);
     }
@@ -99,29 +99,40 @@ export default function AddMember() {
               />
             </div>
 
-            {/* Optional login */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-bold text-gray-900 mb-3">📧 Email (optional)</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full px-5 py-5 text-xl text-gray-900 font-semibold border-2 border-gray-200 rounded-2xl bg-white/80"
-                  placeholder="member@email.com"
-                />
-              </div>
+            {/* Email - NOW REQUIRED */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                📧 Email *
+              </label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                className="w-full px-5 py-5 text-xl text-gray-900 font-semibold border-2 border-gray-200 rounded-2xl
+                bg-white/80 focus:bg-white focus:ring-4 focus:ring-indigo-500/30 focus:border-indigo-500
+                shadow-inner hover:shadow-md transition-all duration-300 placeholder-gray-500
+                placeholder:font-normal placeholder:text-gray-500"
+                placeholder="member@email.com"
+                required
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-900 mb-3">🔑 Password (optional)</label>
-                <input
-                  type="password"
-                  value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  className="w-full px-5 py-5 text-xl text-gray-900 font-semibold border-2 border-gray-200 rounded-2xl bg-white/80"
-                  placeholder="Temporary password"
-                />
-              </div>
+            {/* Password - NOW REQUIRED */}
+            <div>
+              <label className="block text-sm font-bold text-gray-900 mb-2">
+                🔑 Password *
+              </label>
+              <input
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full px-5 py-5 text-xl text-gray-900 font-semibold border-2 border-gray-200 rounded-2xl
+                bg-white/80 focus:bg-white focus:ring-4 focus:ring-purple-500/30 focus:border-purple-500
+                shadow-inner hover:shadow-md transition-all duration-300 placeholder-gray-500
+                placeholder:font-normal placeholder:text-gray-500"
+                placeholder="Enter a password"
+                required
+              />
             </div>
 
             {/* Dates - DARK TEXT */}
@@ -172,8 +183,8 @@ export default function AddMember() {
             </button>
           </form>
 
-          <p className="text-center mt-6 text-sm text-gray-600 font-medium">
-            Status: ACTIVE • Automatically linked to your gym
+          <p className="text-sm text-center text-gray-600 mt-6">
+            Status: ACTIVE • Member will receive login credentials to access their account
           </p>
         </div>
       </div>

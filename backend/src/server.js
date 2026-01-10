@@ -59,6 +59,12 @@ app.use('/api/qr', qrRoutes);
 const memberSelfRoutes = require('./routes/memberSelfRoutes');
 app.use('/api/member', memberSelfRoutes);
 
+const staffRoutes = require('./routes/staffRoutes');
+app.use('/api/staff', staffRoutes);
+
+const accessLogRoutes = require('./routes/accessLogRoutes');
+app.use('/api/access-logs', accessLogRoutes);
+
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

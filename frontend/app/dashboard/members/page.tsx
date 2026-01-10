@@ -14,6 +14,7 @@ const formatDT = (v?: string) => {
 type Member = {
   id: string;
   name: string;
+  email: string;
   membership_start: string;
   membership_end: string;
   status: 'ACTIVE' | 'INACTIVE';
@@ -137,6 +138,7 @@ export default function MembersPage() {
                 <thead className="bg-white">
                   <tr className="border-b">
                     <th className="px-6 py-4 text-sm font-black text-gray-900">Member</th>
+                    <th className="px-6 py-4 text-sm font-black text-gray-900">Email</th>
                     <th className="px-6 py-4 text-sm font-black text-gray-900">Start</th>
                     <th className="px-6 py-4 text-sm font-black text-gray-900">End</th>
                     <th className="px-6 py-4 text-sm font-black text-gray-900">Status</th>
@@ -150,6 +152,10 @@ export default function MembersPage() {
                       <td className="px-6 py-4">
                         <p className="font-bold text-gray-900">{m.name}</p>
                         <p className="text-xs text-gray-500 break-all">ID: {m.id}</p>
+                      </td>
+
+                      <td className="px-6 py-4">
+                        <p className="font-semibold text-gray-800">{m.email || 'N/A'}</p>
                       </td>
 
                       <td className="px-6 py-4 font-semibold text-gray-800">{formatDT(m.membership_start)}</td>

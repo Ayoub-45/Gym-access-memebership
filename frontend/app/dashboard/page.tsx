@@ -295,6 +295,34 @@ export default function DashboardPage() {
               </button>
             )}
 
+            {/* Manage Staff Button - NEW */}
+            {user?.role === 'admin' && (
+              <button
+                onClick={() => router.push('/dashboard/staff')}
+                className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-purple-50 hover:border-purple-200 transition-all group text-left"
+              >
+                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-purple-200">
+                  <svg
+                    className="w-5 h-5 text-purple-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <p className="font-medium text-gray-900 group-hover:text-purple-900">Manage Staff</p>
+                  <p className="text-sm text-gray-500">View and edit staff credentials</p>
+                </div>
+              </button>
+            )}
+
           </div>
         </div>
 
