@@ -18,13 +18,12 @@ router.get('/stats', requireAuth, requireRole('admin', 'staff'), async (req, res
       [gymId]
     );
 
-    // FIXED: Now checks CURRENT_DATE < membership_end (28 Jan < 30 Jan = active)
     const activeResult = await pool.query(
-      `SELECT COUNT(*)::integer as active_members 
-       FROM public.members 
-       WHERE gym_id = $1 
-         AND status = 'ACTIVE' 
-         AND CURRENT_DATE < membership_end::date`, 
+      `SELECT COUNT(*)::integer as active_members
+      FROM public.members
+      WHERE gym_id = $1
+      AND status = 'ACTIVE'
+      AND CURRENT_DATE <= membership_end::date`,
       [gymId]
     );
 
