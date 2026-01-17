@@ -20,12 +20,11 @@ const logAccess = async (data) => {
     );
     console.log('✅ Access logged:', data.result, '-', data.memberName);
   } catch (error) {
-    // Don't let logging failure break the verification
     console.error('❌ Failed to log access:', error.message);
   }
 };
 
-// Generate QR code for a specific member
+// Generate single-use QR code for a specific member (admin only)
 const generateMemberQR = async (req, res) => {
   try {
     const { gymId } = req.user;
@@ -33,16 +32,16 @@ const generateMemberQR = async (req, res) => {
 
     // Get member details and verify gym ownership
     const memberResult = await pool.query(
-      `SELECT id, name, qr_token, membership_end, status, gym_id 
-       FROM public.members 
+      `SELECT id, name, membership_end, status, gym_id
+       FROM public.members
        WHERE id = $1 AND gym_id = $2`,
       [id, gymId]
     );
 
     if (memberResult.rows.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Member not found' 
+      return res.status(404).json({
+        success: false,
+        error: 'Member not found'
       });
     }
 
@@ -50,22 +49,43 @@ const generateMemberQR = async (req, res) => {
 
     // Check if member is active
     if (member.status !== 'ACTIVE') {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Cannot generate QR for inactive member' 
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot generate QR for inactive member'
       });
     }
 
-    // Create secure token with member info
+    // *** NEW: Invalidate all previous unused sessions for this member ***
+    await pool.query(
+      `UPDATE public.qr_sessions 
+       SET used = TRUE, used_at = NOW()
+       WHERE member_id = $1 AND used = FALSE`,
+      [member.id]
+    );
+
+    // Create session that expires in 30 minutes (same as member's own QR)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+
+    const sessionResult = await pool.query(
+      `INSERT INTO public.qr_sessions (member_id, expires_at)
+       VALUES ($1, $2)
+       RETURNING session_token, expires_at`,
+      [member.id, expiresAt]
+    );
+
+    const sessionToken = sessionResult.rows[0].session_token;
+
+    // Create JWT with session token
     const qrToken = jwt.sign(
       {
         memberId: member.id,
         gymId: member.gym_id,
-        qrToken: member.qr_token,
-        type: 'gym_access'
+        sessionToken,
+        type: 'gym_access_session'
       },
       process.env.JWT_SECRET,
-      { expiresIn: '365d' }
+      { expiresIn: '30m' }
     );
 
     // Generate QR code as data URL
@@ -79,27 +99,28 @@ const generateMemberQR = async (req, res) => {
     res.json({
       success: true,
       qrCode: qrCodeDataURL,
+      type: 'session',
+      expiresAt: sessionResult.rows[0].expires_at,
       member: {
         id: member.id,
         name: member.name,
         membershipEnd: member.membership_end
       }
     });
-
   } catch (error) {
     console.error('Generate QR error:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: 'Server error generating QR code' 
+    res.status(500).json({
+      success: false,
+      error: 'Server error generating QR code'
     });
   }
 };
 
-// Verify QR code for access (staff scans member QR) - WITH LOGGING
+// Verify QR code for access (staff scans member QR)
 const verifyQRAccess = async (req, res) => {
   try {
-    const { gymId, userId: staffId } = req.user; // Staff's gym and ID
-    const { qrData } = req.body; // Scanned QR code data
+    const { gymId, userId: staffId } = req.user;
+    const { qrData } = req.body;
 
     if (!qrData) {
       return res.status(400).json({ 
@@ -113,7 +134,6 @@ const verifyQRAccess = async (req, res) => {
     try {
       decoded = jwt.verify(qrData, process.env.JWT_SECRET);
     } catch (err) {
-      // Log invalid QR attempt
       await logAccess({
         gymId,
         memberId: null,
@@ -129,28 +149,11 @@ const verifyQRAccess = async (req, res) => {
       });
     }
 
-    // Verify it's a gym access QR
-    if (decoded.type !== 'gym_access') {
-      await logAccess({
-        gymId,
-        memberId: decoded.memberId || null,
-        memberName: 'Unknown',
-        result: 'DENIED_INVALID',
-        reason: 'Invalid QR code type',
-        staffId,
-      });
-
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid QR code type' 
-      });
-    }
-
     // Verify gym matches
     if (decoded.gymId !== gymId) {
       await logAccess({
         gymId,
-        memberId: decoded.memberId,
+        memberId: decoded.memberId || null,
         memberName: 'Unknown Member',
         result: 'DENIED_INVALID',
         reason: 'QR code is for a different gym',
@@ -163,10 +166,99 @@ const verifyQRAccess = async (req, res) => {
       });
     }
 
-    // Get current member status from database
+    // Check if it's a session-based QR (single-use)
+    if (decoded.type === 'gym_access_session') {
+      const sessionResult = await pool.query(
+        `SELECT member_id, used, expires_at FROM public.qr_sessions 
+         WHERE session_token = $1`,
+        [decoded.sessionToken]
+      );
+
+      if (sessionResult.rows.length === 0) {
+        await logAccess({
+          gymId,
+          memberId: decoded.memberId,
+          memberName: 'Unknown',
+          result: 'DENIED_INVALID',
+          reason: 'Invalid session token',
+          staffId,
+        });
+        return res.status(401).json({ 
+          success: false, 
+          error: 'Invalid QR session' 
+        });
+      }
+
+      const session = sessionResult.rows[0];
+
+      // Check if already used
+      if (session.used) {
+        await logAccess({
+          gymId,
+          memberId: decoded.memberId,
+          memberName: 'Unknown',
+          result: 'DENIED_INVALID',
+          reason: 'QR code already used',
+          staffId,
+        });
+        return res.status(401).json({ 
+          success: false, 
+          error: 'This QR code was already used' 
+        });
+      }
+
+      // Check if expired
+      if (new Date() > new Date(session.expires_at)) {
+        await logAccess({
+          gymId,
+          memberId: decoded.memberId,
+          memberName: 'Unknown',
+          result: 'DENIED_INVALID',
+          reason: 'QR session expired',
+          staffId,
+        });
+        return res.status(401).json({ 
+          success: false, 
+          error: 'QR code expired. Generate a new one.' 
+        });
+      }
+
+      // Mark session as used FIRST (before other checks)
+      await pool.query(
+        `UPDATE public.qr_sessions 
+         SET used = TRUE, used_at = NOW() 
+         WHERE session_token = $1`,
+        [decoded.sessionToken]
+      );
+    }
+
+    // Check if it's a permanent QR (revocation check)
+    if (decoded.type === 'gym_access_permanent') {
+      const memberResult = await pool.query(
+        `SELECT qr_token FROM public.members WHERE id = $1 AND gym_id = $2`,
+        [decoded.memberId, gymId]
+      );
+
+      if (memberResult.rows.length === 0 || 
+          memberResult.rows[0].qr_token !== decoded.qrToken) {
+        await logAccess({
+          gymId,
+          memberId: decoded.memberId,
+          memberName: 'Unknown',
+          result: 'DENIED_INVALID',
+          reason: 'QR code has been revoked',
+          staffId,
+        });
+        return res.status(401).json({ 
+          success: false, 
+          error: 'QR code has been revoked' 
+        });
+      }
+    }
+
+    // Get current member status
     const memberResult = await pool.query(
-      `SELECT id, name, membership_end, status, qr_token
-       FROM public.members 
+      `SELECT id, name, membership_end, status FROM public.members 
        WHERE id = $1 AND gym_id = $2`,
       [decoded.memberId, gymId]
     );
@@ -189,23 +281,6 @@ const verifyQRAccess = async (req, res) => {
 
     const member = memberResult.rows[0];
 
-    // Verify QR token matches (check if revoked)
-    if (member.qr_token !== decoded.qrToken) {
-      await logAccess({
-        gymId,
-        memberId: member.id,
-        memberName: member.name,
-        result: 'DENIED_INVALID',
-        reason: 'QR code has been revoked',
-        staffId,
-      });
-
-      return res.status(401).json({ 
-        success: false, 
-        error: 'QR code has been revoked' 
-      });
-    }
-
     // Check if member is active
     if (member.status !== 'ACTIVE') {
       await logAccess({
@@ -224,31 +299,40 @@ const verifyQRAccess = async (req, res) => {
       });
     }
 
-    // Check if membership has expired
+    // Check membership expiration (with end-of-day logic)
     const today = new Date();
-    const membershipEnd = new Date(member.membership_end);
+    today.setHours(0, 0, 0, 0);
     
-    if (today >= membershipEnd) {
+    const membershipEnd = new Date(member.membership_end);
+    membershipEnd.setHours(23, 59, 59, 999);
+
+    if (today > membershipEnd) {
+      const expiredDate = new Date(member.membership_end);
+      const day = String(expiredDate.getDate()).padStart(2, '0');
+      const month = String(expiredDate.getMonth() + 1).padStart(2, '0');
+      const year = expiredDate.getFullYear();
+      const formattedDate = `${day}/${month}/${year}`;
+
       await logAccess({
         gymId,
         memberId: member.id,
         memberName: member.name,
         result: 'DENIED_EXPIRED',
-        reason: `Membership expired on ${member.membership_end}`,
+        reason: `Membership expired on ${formattedDate}`,
         staffId,
       });
 
-      return res.status(403).json({ 
-        success: false, 
+      return res.status(403).json({
+        success: false,
         error: 'Membership has expired',
-        member: { 
-          name: member.name, 
-          membershipEnd: member.membership_end 
+        member: {
+          name: member.name,
+          membershipEnd: member.membership_end
         }
       });
     }
 
-    // ✅ ACCESS GRANTED - Log success
+    // ✅ ACCESS GRANTED
     await logAccess({
       gymId,
       memberId: member.id,
@@ -272,7 +356,6 @@ const verifyQRAccess = async (req, res) => {
   } catch (error) {
     console.error('Verify QR access error:', error);
     
-    // Log system error
     await logAccess({
       gymId: req.user?.gymId,
       memberId: null,
@@ -289,39 +372,67 @@ const verifyQRAccess = async (req, res) => {
   }
 };
 
-// Generate member's own QR code
+// Generate member's own QR code (SINGLE-USE, 30 MINUTES)
 const generateMyQR = async (req, res) => {
   try {
     const { gymId, memberId } = req.user;
 
     const memberResult = await pool.query(
-      `SELECT id, name, qr_token, membership_end, status, gym_id
-       FROM public.members
+      `SELECT id, name, membership_end, status FROM public.members
        WHERE id = $1 AND gym_id = $2`,
       [memberId, gymId]
     );
 
     if (memberResult.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'Member not found' });
+      return res.status(404).json({ 
+        success: false, 
+        error: 'Member not found' 
+      });
     }
 
     const member = memberResult.rows[0];
 
     if (member.status !== 'ACTIVE') {
-      return res.status(400).json({ success: false, error: 'Cannot generate QR for inactive member' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Cannot generate QR for inactive member' 
+      });
     }
 
+    // *** NEW: Invalidate all previous unused sessions for this member ***
+    await pool.query(
+      `UPDATE public.qr_sessions 
+       SET used = TRUE, used_at = NOW()
+       WHERE member_id = $1 AND used = FALSE`,
+      [memberId]
+    );
+
+    // Create session that expires in 30 minutes
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+
+    const sessionResult = await pool.query(
+      `INSERT INTO public.qr_sessions (member_id, expires_at)
+       VALUES ($1, $2)
+       RETURNING session_token, expires_at`,
+      [memberId, expiresAt]
+    );
+
+    const sessionToken = sessionResult.rows[0].session_token;
+
+    // Create JWT with session token
     const qrToken = jwt.sign(
       {
         memberId: member.id,
-        gymId: member.gym_id,
-        qrToken: member.qr_token,
-        type: 'gym_access',
+        gymId,
+        sessionToken,
+        type: 'gym_access_session'
       },
       process.env.JWT_SECRET,
-      { expiresIn: '365d' }
+      { expiresIn: '30m' }
     );
 
+    // Generate QR code
     const qrCodeDataURL = await QRCode.toDataURL(qrToken, {
       errorCorrectionLevel: 'H',
       type: 'image/png',
@@ -332,11 +443,21 @@ const generateMyQR = async (req, res) => {
     res.json({
       success: true,
       qrCode: qrCodeDataURL,
-      member: { id: member.id, name: member.name, membershipEnd: member.membership_end },
+      type: 'session',
+      expiresAt: sessionResult.rows[0].expires_at,
+      member: { 
+        id: member.id, 
+        name: member.name, 
+        membershipEnd: member.membership_end 
+      },
     });
+
   } catch (error) {
     console.error('Generate my QR error:', error);
-    res.status(500).json({ success: false, error: 'Server error generating QR code' });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error generating QR code' 
+    });
   }
 };
 

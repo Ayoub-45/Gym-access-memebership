@@ -7,7 +7,7 @@ const { generateMemberQR, verifyQRAccess, generateMyQR } = require('../controlle
 router.get('/members/:id', requireAuth, requireRole('admin'), generateMemberQR);
 
 // Member only - Generate their own QR code
-router.get('/me', requireAuth, requireRole('member'), generateMyQR);
+router.get('/my-qr', requireAuth, requireRole('member'), generateMyQR);
 
 // Admin and Staff - Verify QR codes at entrance
 router.post('/verify', requireAuth, requireRole('admin', 'staff'), verifyQRAccess);

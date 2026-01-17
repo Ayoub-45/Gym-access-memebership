@@ -22,6 +22,9 @@ export default function MemberDetailPage() {
   const [loading, setLoading] = useState(true);
   const [qrLoading, setQrLoading] = useState(false);
   const [error, setError] = useState('');
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<string>('');
+
 
   // Fetch member details
   useEffect(() => {
@@ -51,6 +54,29 @@ export default function MemberDetailPage() {
     if (memberId) fetchMember();
   }, [memberId]);
 
+  // Countdown timer for QR expiration
+  useEffect(() => {
+    if (!expiresAt) return;
+
+    const interval = setInterval(() => {
+      const now = new Date().getTime();
+      const expiry = new Date(expiresAt).getTime();
+      const diff = expiry - now;
+
+      if (diff <= 0) {
+        setTimeLeft('Expired');
+        setQrCode(null);  // Clear expired QR
+        clearInterval(interval);
+      } else {
+        const minutes = Math.floor(diff / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        setTimeLeft(`${minutes}m ${seconds}s`);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
   // Generate QR code
   const generateQR = async () => {
     setQrLoading(true);
@@ -66,6 +92,7 @@ export default function MemberDetailPage() {
       
       if (data.success) {
         setQrCode(data.qrCode);
+        setExpiresAt(data.expiresAt);
       } else {
         setError(data.error || 'Failed to generate QR code');
       }
@@ -165,7 +192,20 @@ export default function MemberDetailPage() {
         <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 p-8">
           <div className="text-center">
             <h2 className="text-2xl font-black text-gray-900 mb-2">Member QR Code</h2>
-            <p className="text-gray-600 mb-6">Scan this code for gym access verification</p>
+            <p className="text-gray-600 mb-4">Single-use code • Valid 30 minutes</p>
+
+            {/* Countdown Timer */}
+            {qrCode && timeLeft && (
+              <div className="mb-4">
+                <div className={`inline-block px-4 py-2 rounded-full font-bold text-sm ${
+                  timeLeft === 'Expired' 
+                    ? 'bg-red-100 text-red-800 border-2 border-red-300'
+                    : 'bg-green-100 text-green-800 border-2 border-green-300'
+                }`}>
+                  {timeLeft === 'Expired' ? '❌ Expired' : `⏱️ ${timeLeft}`}
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-semibold">
@@ -201,6 +241,14 @@ export default function MemberDetailPage() {
                 {/* QR Code Display */}
                 <div className="inline-block p-6 bg-white rounded-2xl shadow-2xl border-4 border-indigo-200">
                   <img src={qrCode} alt="Member QR Code" className="w-64 h-64" />
+                </div>
+
+                {/* ⚠️ ADD THIS WARNING SECTION */}
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 text-left">
+                  <p className="text-yellow-900 font-bold text-sm">⚠️ Single-Use QR Code</p>
+                  <p className="text-yellow-800 text-xs mt-1">
+                    This code works only once and expires in 30 minutes. Generate a new one for each visit.
+                  </p>
                 </div>
 
                 {/* Download Button */}
