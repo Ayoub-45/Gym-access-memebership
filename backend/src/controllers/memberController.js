@@ -6,38 +6,32 @@ const addMember = async (req, res) => {
     const { gymId } = req.user;
     const { name, membership_start, membership_end, email, password } = req.body;
 
-    if (!name || !membership_start || !membership_end) {
-      return res.status(400).json({ success: false, error: 'Name and membership dates required' });
+    // Validate required fields
+    if (!name || !membership_start || !membership_end || !email || !password) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Name, email, password, and membership dates are required' 
+      });
     }
 
-    // optional login: require both or neither
-    if ((email && !password) || (!email && password)) {
-      return res
-        .status(400)
-        .json({ success: false, error: 'Provide both email and password (or neither)' });
-    }
+    const cleanEmail = email.trim().toLowerCase();
 
-    const cleanEmail = email ? email.trim().toLowerCase() : null;
-    let hashedPassword = null;
-
-    if (cleanEmail && password) {
-      hashedPassword = await bcrypt.hash(password, 10);
-    }
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const result = await pool.query(
       `INSERT INTO public.members
        (name, email, password, membership_start, membership_end, status, gym_id)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id, name, email,
-                 to_char(membership_start, 'YYYY-MM-DD') AS membership_start,
-                 to_char(membership_end, 'YYYY-MM-DD') AS membership_end,
-                 status, gym_id, qr_token, created_at`,
+       to_char(membership_start, 'YYYY-MM-DD') AS membership_start,
+       to_char(membership_end, 'YYYY-MM-DD') AS membership_end,
+       status, gym_id, qr_token, created_at`,
       [name.trim(), cleanEmail, hashedPassword, membership_start, membership_end, 'ACTIVE', gymId]
     );
 
     res.status(201).json({ success: true, member: result.rows[0] });
   } catch (error) {
-    // this will catch unique index violation too (email already exists in gym)
     console.error('Add member error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
@@ -47,11 +41,12 @@ const addMember = async (req, res) => {
 const listMembers = async (req, res) => {
   try {
     const { gymId } = req.user;
-
+    
     const result = await pool.query(
       `SELECT
           id,
           name,
+          email,  -- ADD THIS LINE
           to_char(membership_start, 'YYYY-MM-DD') AS membership_start,
           to_char(membership_end, 'YYYY-MM-DD') AS membership_end,
           status,
@@ -65,21 +60,20 @@ const listMembers = async (req, res) => {
       ORDER BY id DESC`,
       [gymId]
     );
-
+    
     res.json({ success: true, members: result.rows });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
 };
 
-
 const updateMember = async (req, res) => {
   try {
     const { gymId } = req.user;
     const { id } = req.params;
-    const { name, membership_start, membership_end } = req.body;
+    const { name, membership_start, membership_end, email, password } = req.body;
 
-    // ensure the member belongs to this gym
+    // Ensure the member belongs to this gym
     const check = await pool.query(
       `SELECT id FROM public.members WHERE id = $1 AND gym_id = $2`,
       [id, gymId]
@@ -89,21 +83,77 @@ const updateMember = async (req, res) => {
       return res.status(404).json({ success: false, error: 'Member not found' });
     }
 
+    // Check if email is already taken by another member in the same gym
+    if (email) {
+      const emailCheck = await pool.query(
+        `SELECT id FROM public.members WHERE email = $1 AND gym_id = $2 AND id != $3`,
+        [email.trim().toLowerCase(), gymId, id]
+      );
+      
+      if (emailCheck.rows.length > 0) {
+        return res.status(400).json({ success: false, error: 'Email already exists in this gym' });
+      }
+    }
+
+    // Build dynamic update query
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (name) {
+      updates.push(`name = $${paramIndex}`);
+      values.push(name.trim());
+      paramIndex++;
+    }
+
+    if (email) {
+      updates.push(`email = $${paramIndex}`);
+      values.push(email.trim().toLowerCase());
+      paramIndex++;
+    }
+
+    if (password && password.trim()) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updates.push(`password = $${paramIndex}`);
+      values.push(hashedPassword);
+      paramIndex++;
+    }
+
+    if (membership_start) {
+      updates.push(`membership_start = $${paramIndex}`);
+      values.push(membership_start);
+      paramIndex++;
+    }
+
+    if (membership_end) {
+      updates.push(`membership_end = $${paramIndex}`);
+      values.push(membership_end);
+      paramIndex++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ success: false, error: 'No fields to update' });
+    }
+
+    values.push(id);
     const result = await pool.query(
       `UPDATE public.members
-       SET name = COALESCE($1, name),
-           membership_start = COALESCE($2, membership_start),
-           membership_end = COALESCE($3, membership_end)
-       WHERE id = $4
-       RETURNING id, name, membership_start, membership_end, status`,
-      [name?.trim() || null, membership_start || null, membership_end || null, id]
+       SET ${updates.join(', ')}
+       WHERE id = $${paramIndex}
+       RETURNING id, name, email, 
+       to_char(membership_start, 'YYYY-MM-DD') AS membership_start,
+       to_char(membership_end, 'YYYY-MM-DD') AS membership_end,
+       status`,
+      values
     );
 
     res.json({ success: true, member: result.rows[0] });
   } catch (error) {
+    console.error('Update member error:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
+
 
 const deactivateMember = async (req, res) => {
   try {
